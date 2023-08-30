@@ -59,7 +59,6 @@ export default function useMultiselect (props, context, dep)
   }
 
   const deactivate = () => {
-    console.log('deactivate')
     isActive.value = false
 
     setTimeout(() => {
@@ -82,7 +81,6 @@ export default function useMultiselect (props, context, dep)
   }
 
   const handleFocusOut = () => {
-    console.log(hideOnBlur.value)
     if (hideOnBlur.value)
       deactivate()
   }
