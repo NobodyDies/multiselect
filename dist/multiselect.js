@@ -1,4 +1,4 @@
-import { toRefs, getCurrentInstance, ref, computed, watch, nextTick, onMounted, openBlock, createElementBlock, normalizeClass, createElementVNode, mergeProps, createCommentVNode, withModifiers, Fragment, renderList, renderSlot, withKeys, createTextVNode, toDisplayString } from 'vue';
+import { toRefs, getCurrentInstance, ref, computed, watch, nextTick, onMounted, provide, openBlock, createElementBlock, normalizeClass, createElementVNode, mergeProps, createCommentVNode, withModifiers, Fragment, renderList, renderSlot, withKeys, createTextVNode, toDisplayString, createBlock, resolveDynamicComponent, createSlots, withCtx, normalizeProps } from 'vue';
 
 function isNullish (val) {
   return [null, undefined].indexOf(val) !== -1
@@ -1395,7 +1395,7 @@ function useDropdown (props, context, dep)
 
 function useMultiselect (props, context, dep)
 {
-  const { searchable, disabled, clearOnBlur } = toRefs(props);
+  const { searchable, disabled, clearOnBlur, hideOnBlur } = toRefs(props);
 
   // ============ DEPENDENCIES ============
 
@@ -1408,7 +1408,7 @@ function useMultiselect (props, context, dep)
   // ================ DATA ================
 
   const multiselect = ref(null);
-  
+
   const wrapper = ref(null);
 
   const tags = ref(null);
@@ -1452,6 +1452,7 @@ function useMultiselect (props, context, dep)
   };
 
   const deactivate = () => {
+    console.log('deactivate');
     isActive.value = false;
 
     setTimeout(() => {
@@ -1474,7 +1475,9 @@ function useMultiselect (props, context, dep)
   };
 
   const handleFocusOut = () => {
-    deactivate();
+    console.log(hideOnBlur.value);
+    if (hideOnBlur.value)
+      deactivate();
   };
 
   const handleCaretClick = () => {
@@ -1491,7 +1494,7 @@ function useMultiselect (props, context, dep)
         deactivate();
       }, 0);
     } else if (document.activeElement.isEqualNode(wrapper.value) && !isOpen.value) {
-      activate();    
+      activate();
     }
 
     setTimeout(() => {
@@ -2263,7 +2266,7 @@ function resolveDeps (props, context, features, deps = {}) {
 var script = {
     name: 'Multiselect',
     emits: [
-      'paste', 'open', 'close', 'select', 'deselect', 
+      'paste', 'open', 'close', 'select', 'deselect',
       'input', 'search-change', 'tag', 'option', 'update:modelValue',
       'change', 'clear', 'keydown', 'keyup', 'max', 'create',
     ],
@@ -2580,10 +2583,22 @@ var script = {
         type: Boolean,
         default: false,
       },
+      listWrapperComponent: {
+        required: false,
+        type: Object,
+        default: {
+          template: '<slot></slot>',
+        },
+      },
+      hideOnBlur: {
+        required: false,
+        type: Boolean,
+        default: true,
+      },
     },
     setup(props, context)
-    { 
-      return resolveDeps(props, context, [
+    {
+      const computedProps = resolveDeps(props, context, [
         useI18n,
         useValue,
         usePointer$1,
@@ -2597,7 +2612,11 @@ var script = {
         useKeyboard,
         useClasses,
         useA11y,
-      ])
+      ]);
+      const computedPropsRef = ref(computedProps);
+      provide('allMultiselectProps', computedPropsRef);
+
+      return computedProps
     }
   };
 
@@ -2823,131 +2842,147 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         : createCommentVNode("v-if", true)
     ], 16 /* FULL_PROPS */, _hoisted_2),
     createCommentVNode(" Options "),
-    createElementVNode("div", {
-      class: normalizeClass(_ctx.classList.dropdown),
-      tabindex: "-1"
-    }, [
-      renderSlot(_ctx.$slots, "beforelist", { options: _ctx.fo }),
-      createElementVNode("ul", {
-        class: normalizeClass(_ctx.classList.options),
-        id: _ctx.ariaControls,
-        role: "listbox"
-      }, [
-        ($props.groups)
-          ? (openBlock(true), createElementBlock(Fragment, { key: 0 }, renderList(_ctx.fg, (group, i, key) => {
-              return (openBlock(), createElementBlock("li", {
-                class: normalizeClass(_ctx.classList.group),
-                key: key,
-                id: _ctx.ariaGroupId(group),
-                "aria-label": _ctx.ariaGroupLabel(_ctx.localize(group[$props.groupLabel])),
-                "aria-selected": _ctx.isSelected(group),
-                role: "option"
-              }, [
-                (!group.__CREATE__)
-                  ? (openBlock(), createElementBlock("div", {
-                      key: 0,
-                      class: normalizeClass(_ctx.classList.groupLabel(group)),
-                      "data-pointed": _ctx.isPointed(group),
-                      onMouseenter: $event => (_ctx.setPointer(group, i)),
-                      onClick: $event => (_ctx.handleGroupClick(group))
-                    }, [
-                      renderSlot(_ctx.$slots, "grouplabel", {
-                        group: group,
-                        isSelected: _ctx.isSelected,
-                        isPointed: _ctx.isPointed
-                      }, () => [
-                        createElementVNode("span", {
-                          innerHTML: _ctx.localize(group[$props.groupLabel])
-                        }, null, 8 /* PROPS */, _hoisted_11)
-                      ])
-                    ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_10))
-                  : createCommentVNode("v-if", true),
-                createElementVNode("ul", {
-                  class: normalizeClass(_ctx.classList.groupOptions),
-                  "aria-label": _ctx.ariaGroupLabel(_ctx.localize(group[$props.groupLabel])),
-                  role: "group"
-                }, [
-                  (openBlock(true), createElementBlock(Fragment, null, renderList(group.__VISIBLE__, (option, i, key) => {
-                    return (openBlock(), createElementBlock("li", {
-                      class: normalizeClass(_ctx.classList.option(option, group)),
-                      "data-pointed": _ctx.isPointed(option),
-                      "data-selected": _ctx.isSelected(option) || undefined,
-                      key: key,
-                      onMouseenter: $event => (_ctx.setPointer(option)),
-                      onClick: $event => (_ctx.handleOptionClick(option)),
-                      id: _ctx.ariaOptionId(option),
-                      "aria-selected": _ctx.isSelected(option),
-                      "aria-label": _ctx.ariaOptionLabel(_ctx.localize(option[$props.label])),
-                      role: "option"
-                    }, [
-                      renderSlot(_ctx.$slots, "option", {
-                        option: option,
-                        isSelected: _ctx.isSelected,
-                        isPointed: _ctx.isPointed,
-                        search: _ctx.search
-                      }, () => [
-                        createElementVNode("span", null, toDisplayString(_ctx.localize(option[$props.label])), 1 /* TEXT */)
-                      ])
-                    ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_13))
-                  }), 128 /* KEYED_FRAGMENT */))
-                ], 10 /* CLASS, PROPS */, _hoisted_12)
-              ], 10 /* CLASS, PROPS */, _hoisted_9))
-            }), 128 /* KEYED_FRAGMENT */))
-          : (openBlock(true), createElementBlock(Fragment, { key: 1 }, renderList(_ctx.fo, (option, i, key) => {
-              return (openBlock(), createElementBlock("li", {
-                class: normalizeClass(_ctx.classList.option(option)),
-                "data-pointed": _ctx.isPointed(option),
-                "data-selected": _ctx.isSelected(option) || undefined,
-                key: key,
-                onMouseenter: $event => (_ctx.setPointer(option)),
-                onClick: $event => (_ctx.handleOptionClick(option)),
-                id: _ctx.ariaOptionId(option),
-                "aria-selected": _ctx.isSelected(option),
-                "aria-label": _ctx.ariaOptionLabel(_ctx.localize(option[$props.label])),
-                role: "option"
-              }, [
-                renderSlot(_ctx.$slots, "option", {
-                  option: option,
-                  isSelected: _ctx.isSelected,
-                  isPointed: _ctx.isPointed,
-                  search: _ctx.search
-                }, () => [
-                  createElementVNode("span", null, toDisplayString(_ctx.localize(option[$props.label])), 1 /* TEXT */)
-                ])
-              ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_14))
-            }), 128 /* KEYED_FRAGMENT */))
-      ], 10 /* CLASS, PROPS */, _hoisted_8),
-      (_ctx.noOptions)
-        ? renderSlot(_ctx.$slots, "nooptions", { key: 0 }, () => [
-            createElementVNode("div", {
-              class: normalizeClass(_ctx.classList.noOptions),
-              innerHTML: _ctx.localize($props.noOptionsText)
-            }, null, 10 /* CLASS, PROPS */, _hoisted_15)
-          ])
-        : createCommentVNode("v-if", true),
-      (_ctx.noResults)
-        ? renderSlot(_ctx.$slots, "noresults", { key: 1 }, () => [
-            createElementVNode("div", {
-              class: normalizeClass(_ctx.classList.noResults),
-              innerHTML: _ctx.localize($props.noResultsText)
-            }, null, 10 /* CLASS, PROPS */, _hoisted_16)
-          ])
-        : createCommentVNode("v-if", true),
-      ($props.infinite && _ctx.hasMore)
-        ? (openBlock(), createElementBlock("div", {
-            key: 2,
-            class: normalizeClass(_ctx.classList.inifinite),
-            ref: "infiniteLoader"
+    (openBlock(), createBlock(resolveDynamicComponent($props.listWrapperComponent), null, createSlots({
+      default: withCtx(() => [
+        createElementVNode("div", {
+          class: normalizeClass(_ctx.classList.dropdown),
+          tabindex: "-1"
+        }, [
+          renderSlot(_ctx.$slots, "beforelist", { options: _ctx.fo }),
+          createElementVNode("ul", {
+            class: normalizeClass(_ctx.classList.options),
+            id: _ctx.ariaControls,
+            role: "listbox"
           }, [
-            renderSlot(_ctx.$slots, "infinite", {}, () => [
-              createElementVNode("span", {
-                class: normalizeClass(_ctx.classList.inifiniteSpinner)
-              }, null, 2 /* CLASS */)
-            ])
-          ], 2 /* CLASS */))
-        : createCommentVNode("v-if", true),
-      renderSlot(_ctx.$slots, "afterlist", { options: _ctx.fo })
-    ], 2 /* CLASS */),
+            ($props.groups)
+              ? (openBlock(true), createElementBlock(Fragment, { key: 0 }, renderList(_ctx.fg, (group, i, key) => {
+                  return (openBlock(), createElementBlock("li", {
+                    class: normalizeClass(_ctx.classList.group),
+                    key: key,
+                    id: _ctx.ariaGroupId(group),
+                    "aria-label": _ctx.ariaGroupLabel(_ctx.localize(group[$props.groupLabel])),
+                    "aria-selected": _ctx.isSelected(group),
+                    role: "option"
+                  }, [
+                    (!group.__CREATE__)
+                      ? (openBlock(), createElementBlock("div", {
+                          key: 0,
+                          class: normalizeClass(_ctx.classList.groupLabel(group)),
+                          "data-pointed": _ctx.isPointed(group),
+                          onMouseenter: $event => (_ctx.setPointer(group, i)),
+                          onClick: $event => (_ctx.handleGroupClick(group))
+                        }, [
+                          renderSlot(_ctx.$slots, "grouplabel", {
+                            group: group,
+                            isSelected: _ctx.isSelected,
+                            isPointed: _ctx.isPointed
+                          }, () => [
+                            createElementVNode("span", {
+                              innerHTML: _ctx.localize(group[$props.groupLabel])
+                            }, null, 8 /* PROPS */, _hoisted_11)
+                          ])
+                        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_10))
+                      : createCommentVNode("v-if", true),
+                    createElementVNode("ul", {
+                      class: normalizeClass(_ctx.classList.groupOptions),
+                      "aria-label": _ctx.ariaGroupLabel(_ctx.localize(group[$props.groupLabel])),
+                      role: "group"
+                    }, [
+                      (openBlock(true), createElementBlock(Fragment, null, renderList(group.__VISIBLE__, (option, i, key) => {
+                        return (openBlock(), createElementBlock("li", {
+                          class: normalizeClass(_ctx.classList.option(option, group)),
+                          "data-pointed": _ctx.isPointed(option),
+                          "data-selected": _ctx.isSelected(option) || undefined,
+                          key: key,
+                          onMouseenter: $event => (_ctx.setPointer(option)),
+                          onClick: $event => (_ctx.handleOptionClick(option)),
+                          id: _ctx.ariaOptionId(option),
+                          "aria-selected": _ctx.isSelected(option),
+                          "aria-label": _ctx.ariaOptionLabel(_ctx.localize(option[$props.label])),
+                          role: "option"
+                        }, [
+                          renderSlot(_ctx.$slots, "option", {
+                            option: option,
+                            isSelected: _ctx.isSelected,
+                            isPointed: _ctx.isPointed,
+                            search: _ctx.search
+                          }, () => [
+                            createElementVNode("span", null, toDisplayString(_ctx.localize(option[$props.label])), 1 /* TEXT */)
+                          ])
+                        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_13))
+                      }), 128 /* KEYED_FRAGMENT */))
+                    ], 10 /* CLASS, PROPS */, _hoisted_12)
+                  ], 10 /* CLASS, PROPS */, _hoisted_9))
+                }), 128 /* KEYED_FRAGMENT */))
+              : (openBlock(true), createElementBlock(Fragment, { key: 1 }, renderList(_ctx.fo, (option, i, key) => {
+                  return (openBlock(), createElementBlock("li", {
+                    class: normalizeClass(_ctx.classList.option(option)),
+                    "data-pointed": _ctx.isPointed(option),
+                    "data-selected": _ctx.isSelected(option) || undefined,
+                    key: key,
+                    onMouseenter: $event => (_ctx.setPointer(option)),
+                    onClick: $event => (_ctx.handleOptionClick(option)),
+                    id: _ctx.ariaOptionId(option),
+                    "aria-selected": _ctx.isSelected(option),
+                    "aria-label": _ctx.ariaOptionLabel(_ctx.localize(option[$props.label])),
+                    role: "option"
+                  }, [
+                    renderSlot(_ctx.$slots, "option", {
+                      option: option,
+                      isSelected: _ctx.isSelected,
+                      isPointed: _ctx.isPointed,
+                      search: _ctx.search
+                    }, () => [
+                      createElementVNode("span", null, toDisplayString(_ctx.localize(option[$props.label])), 1 /* TEXT */)
+                    ])
+                  ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_14))
+                }), 128 /* KEYED_FRAGMENT */))
+          ], 10 /* CLASS, PROPS */, _hoisted_8),
+          (_ctx.noOptions)
+            ? renderSlot(_ctx.$slots, "nooptions", { key: 0 }, () => [
+                createElementVNode("div", {
+                  class: normalizeClass(_ctx.classList.noOptions),
+                  innerHTML: _ctx.localize($props.noOptionsText)
+                }, null, 10 /* CLASS, PROPS */, _hoisted_15)
+              ])
+            : createCommentVNode("v-if", true),
+          (_ctx.noResults)
+            ? renderSlot(_ctx.$slots, "noresults", { key: 1 }, () => [
+                createElementVNode("div", {
+                  class: normalizeClass(_ctx.classList.noResults),
+                  innerHTML: _ctx.localize($props.noResultsText)
+                }, null, 10 /* CLASS, PROPS */, _hoisted_16)
+              ])
+            : createCommentVNode("v-if", true),
+          ($props.infinite && _ctx.hasMore)
+            ? (openBlock(), createElementBlock("div", {
+                key: 2,
+                class: normalizeClass(_ctx.classList.inifinite),
+                ref: "infiniteLoader"
+              }, [
+                renderSlot(_ctx.$slots, "infinite", {}, () => [
+                  createElementVNode("span", {
+                    class: normalizeClass(_ctx.classList.inifiniteSpinner)
+                  }, null, 2 /* CLASS */)
+                ])
+              ], 2 /* CLASS */))
+            : createCommentVNode("v-if", true),
+          renderSlot(_ctx.$slots, "afterlist", { options: _ctx.fo })
+        ], 2 /* CLASS */)
+      ]),
+      _: 2 /* DYNAMIC */
+    }, [
+      renderList(_ctx.$slots, (_, slotName) => {
+        return {
+          name: slotName,
+          fn: withCtx((slotProps) => [
+            (slotName.startsWith('list-wrapper-'))
+              ? renderSlot(_ctx.$slots, slotName, normalizeProps(mergeProps({ key: 0 }, slotProps)))
+              : createCommentVNode("v-if", true)
+          ])
+        }
+      })
+    ]), 1024 /* DYNAMIC_SLOTS */)),
     createCommentVNode(" Hacky input element to show HTML5 required warning "),
     ($props.required)
       ? (openBlock(), createElementBlock("input", {

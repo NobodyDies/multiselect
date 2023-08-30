@@ -82,13 +82,13 @@
               </span>
             </span>
           </slot>
-      
+
           <div :class="classList.tagsSearchWrapper" ref="tags">
             <!-- Used for measuring search width -->
             <span :class="classList.tagsSearchCopy">{{ search }}</span>
 
             <!-- Actual search input -->
-            <input    
+            <input
               v-if="searchable && !disabled"
               :type="inputType"
               :modelValue="search"
@@ -100,7 +100,7 @@
               @keypress="handleKeypress"
               @paste.stop="handlePaste"
               ref="input"
-              
+
               :aria-controls="ariaControls"
               :aria-placeholder="ariaPlaceholder"
               :aria-expanded="isOpen"
@@ -168,45 +168,73 @@
     </div>
 
     <!-- Options -->
-    <div
-      :class="classList.dropdown"
-      tabindex="-1"
-    >
-      <slot name="beforelist" :options="fo"></slot>
+    <component v-bind:is="listWrapperComponent">
+      <template v-for="(_, slotName) in $slots" v-slot:[slotName]="slotProps">
+        <template v-if="slotName.startsWith('list-wrapper-')">
+          <slot :name="slotName" v-bind="slotProps"></slot>
+        </template>
+      </template>
+      <div
+        :class="classList.dropdown"
+        tabindex="-1"
+      >
+          <slot name="beforelist" :options="fo"></slot>
 
-      <ul :class="classList.options" :id="ariaControls" role="listbox">
-        <template v-if="groups">
-          <li
-            v-for="(group, i, key) in fg"
-            :class="classList.group"
-            :key="key"
+          <ul :class="classList.options" :id="ariaControls" role="listbox">
+            <template v-if="groups">
+            <li
+                v-for="(group, i, key) in fg"
+                :class="classList.group"
+                :key="key"
 
-            :id="ariaGroupId(group)"
-            :aria-label="ariaGroupLabel(localize(group[groupLabel]))"
-            :aria-selected="isSelected(group)"
-            role="option"
-          >
-            <div
-              v-if="!group.__CREATE__"
-              :class="classList.groupLabel(group)"
-              :data-pointed="isPointed(group)"
-              @mouseenter="setPointer(group, i)"
-              @click="handleGroupClick(group)"
+                :id="ariaGroupId(group)"
+                :aria-label="ariaGroupLabel(localize(group[groupLabel]))"
+                :aria-selected="isSelected(group)"
+                role="option"
             >
-              <slot name="grouplabel" :group="group" :is-selected="isSelected" :is-pointed="isPointed">
-                <span v-html="localize(group[groupLabel])"></span>
-              </slot>
-            </div>
+              <div
+                  v-if="!group.__CREATE__"
+                  :class="classList.groupLabel(group)"
+                  :data-pointed="isPointed(group)"
+                  @mouseenter="setPointer(group, i)"
+                  @click="handleGroupClick(group)"
+              >
+                <slot name="grouplabel" :group="group" :is-selected="isSelected" :is-pointed="isPointed">
+                  <span v-html="localize(group[groupLabel])"></span>
+                </slot>
+              </div>
 
-            <ul
-              :class="classList.groupOptions"
-              
-              :aria-label="ariaGroupLabel(localize(group[groupLabel]))"
-              role="group"
-            >
-              <li
-                v-for="(option, i, key) in group.__VISIBLE__"
-                :class="classList.option(option, group)"
+              <ul
+                  :class="classList.groupOptions"
+
+                  :aria-label="ariaGroupLabel(localize(group[groupLabel]))"
+                  role="group"
+              >
+                <li
+                    v-for="(option, i, key) in group.__VISIBLE__"
+                    :class="classList.option(option, group)"
+                    :data-pointed="isPointed(option)"
+                    :data-selected="isSelected(option) || undefined"
+                    :key="key"
+                    @mouseenter="setPointer(option)"
+                    @click="handleOptionClick(option)"
+
+                    :id="ariaOptionId(option)"
+                    :aria-selected="isSelected(option)"
+                    :aria-label="ariaOptionLabel(localize(option[label]))"
+                    role="option"
+                >
+                  <slot name="option" :option="option" :is-selected="isSelected" :is-pointed="isPointed" :search="search">
+                    <span>{{ localize(option[label]) }}</span>
+                  </slot>
+                </li>
+              </ul>
+            </li>
+            </template>
+            <template v-else>
+            <li
+                v-for="(option, i, key) in fo"
+                :class="classList.option(option)"
                 :data-pointed="isPointed(option)"
                 :data-selected="isSelected(option) || undefined"
                 :key="key"
@@ -217,56 +245,35 @@
                 :aria-selected="isSelected(option)"
                 :aria-label="ariaOptionLabel(localize(option[label]))"
                 role="option"
-              >
-                <slot name="option" :option="option" :is-selected="isSelected" :is-pointed="isPointed" :search="search">
-                  <span>{{ localize(option[label]) }}</span>
-                </slot>
-              </li>
-            </ul>
-          </li>
-        </template>
-        <template v-else>
-          <li
-            v-for="(option, i, key) in fo"
-            :class="classList.option(option)"
-            :data-pointed="isPointed(option)"
-            :data-selected="isSelected(option) || undefined"
-            :key="key"
-            @mouseenter="setPointer(option)"
-            @click="handleOptionClick(option)"
+            >
+              <slot name="option" :option="option" :isSelected="isSelected" :is-pointed="isPointed" :search="search">
+                <span>{{ localize(option[label]) }}</span>
+              </slot>
+            </li>
+            </template>
+          </ul>
 
-            :id="ariaOptionId(option)"
-            :aria-selected="isSelected(option)"
-            :aria-label="ariaOptionLabel(localize(option[label]))"
-            role="option"
-          >
-            <slot name="option" :option="option" :isSelected="isSelected" :is-pointed="isPointed" :search="search">
-              <span>{{ localize(option[label]) }}</span>
+          <slot v-if="noOptions" name="nooptions">
+            <div :class="classList.noOptions" v-html="localize(noOptionsText)"></div>
+          </slot>
+
+          <slot v-if="noResults" name="noresults">
+            <div :class="classList.noResults" v-html="localize(noResultsText)"></div>
+          </slot>
+
+          <div v-if="infinite && hasMore" :class="classList.inifinite" ref="infiniteLoader">
+            <slot name="infinite">
+              <span :class="classList.inifiniteSpinner"></span>
             </slot>
-          </li>
-        </template>
-      </ul>
+          </div>
 
-      <slot v-if="noOptions" name="nooptions">
-        <div :class="classList.noOptions" v-html="localize(noOptionsText)"></div>
-      </slot>
-
-      <slot v-if="noResults" name="noresults">
-        <div :class="classList.noResults" v-html="localize(noResultsText)"></div>
-      </slot>
-
-      <div v-if="infinite && hasMore" :class="classList.inifinite" ref="infiniteLoader">
-        <slot name="infinite">
-          <span :class="classList.inifiniteSpinner"></span>
-        </slot>
+          <slot name="afterlist" :options="fo"></slot>
       </div>
-
-      <slot name="afterlist" :options="fo"></slot>
-    </div>
+    </component>
 
     <!-- Hacky input element to show HTML5 required warning -->
     <input v-if="required" :class="classList.fakeInput" tabindex="-1" :value="textValue" required/>
-    
+
     <!-- Native input support -->
     <template v-if="nativeSupport">
       <input v-if="mode == 'single'" type="hidden" :name="name" :value="plainValue !== undefined ? plainValue : ''" />
@@ -297,18 +304,19 @@
   import usePointerAction from './composables/usePointerAction'
   import useDropdown from './composables/useDropdown'
   import useMultiselect from './composables/useMultiselect'
-  import useKeyboard from './composables/useKeyboard' 
-  import useClasses from './composables/useClasses' 
-  import useScroll from './composables/useScroll' 
-  import useA11y from './composables/useA11y' 
+  import useKeyboard from './composables/useKeyboard'
+  import useClasses from './composables/useClasses'
+  import useScroll from './composables/useScroll'
+  import useA11y from './composables/useA11y'
   import useI18n from './composables/useI18n'
 
   import resolveDeps from './utils/resolveDeps'
+  import { ref, provide } from 'vue'
 
   export default {
     name: 'Multiselect',
     emits: [
-      'paste', 'open', 'close', 'select', 'deselect', 
+      'paste', 'open', 'close', 'select', 'deselect',
       'input', 'search-change', 'tag', 'option', 'update:modelValue',
       'change', 'clear', 'keydown', 'keyup', 'max', 'create',
     ],
@@ -625,10 +633,22 @@
         type: Boolean,
         default: false,
       },
+      listWrapperComponent: {
+        required: false,
+        type: Object,
+        default: {
+          template: '<slot></slot>',
+        },
+      },
+      hideOnBlur: {
+        required: false,
+        type: Boolean,
+        default: true,
+      },
     },
     setup(props, context)
-    { 
-      return resolveDeps(props, context, [
+    {
+      const computedProps = resolveDeps(props, context, [
         useI18n,
         useValue,
         usePointer,
@@ -643,6 +663,10 @@
         useClasses,
         useA11y,
       ])
+      const computedPropsRef = ref(computedProps);
+      provide('allMultiselectProps', computedPropsRef)
+
+      return computedProps
     }
   }
 </script>

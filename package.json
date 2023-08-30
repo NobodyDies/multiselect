@@ -1,10 +1,10 @@
 {
-  "name": "@vueform/multiselect",
-  "version": "2.6.2",
+  "name": "@awoken/multiselect",
+  "version": "2.7.2",
   "private": false,
   "description": "Vue 3 multiselect component with single select, multiselect and tagging options.",
   "license": "MIT",
-  "author": "Adam Berecz <adam@vueform.com>",
+  "author": "Khamit Rakhimkulov <nobodydies.ufa@gmail.com>",
   "main": "./dist/multiselect.js",
   "types": "./src/index.d.ts",
   "module": "./dist/multiselect.mjs",

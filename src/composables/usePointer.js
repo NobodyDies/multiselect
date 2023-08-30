@@ -1,6 +1,6 @@
 import { ref, toRefs } from 'vue'
 
-export default function usePointer (props, context, dep)
+export default function usePointer (props)
 {
   const { groupSelect, mode, groups, disabledProp } = toRefs(props)
 

@@ -1,8 +1,8 @@
-import { ref, toRefs, computed, nextTick } from 'vue'
+import { ref, toRefs, computed } from 'vue'
 
 export default function useMultiselect (props, context, dep)
 {
-  const { searchable, disabled, clearOnBlur } = toRefs(props)
+  const { searchable, disabled, clearOnBlur, hideOnBlur } = toRefs(props)
 
   // ============ DEPENDENCIES ============
 
@@ -15,7 +15,7 @@ export default function useMultiselect (props, context, dep)
   // ================ DATA ================
 
   const multiselect = ref(null)
-  
+
   const wrapper = ref(null)
 
   const tags = ref(null)
@@ -59,6 +59,7 @@ export default function useMultiselect (props, context, dep)
   }
 
   const deactivate = () => {
+    console.log('deactivate')
     isActive.value = false
 
     setTimeout(() => {
@@ -81,7 +82,9 @@ export default function useMultiselect (props, context, dep)
   }
 
   const handleFocusOut = () => {
-    deactivate()
+    console.log(hideOnBlur.value)
+    if (hideOnBlur.value)
+      deactivate()
   }
 
   const handleCaretClick = () => {
@@ -98,7 +101,7 @@ export default function useMultiselect (props, context, dep)
         deactivate()
       }, 0)
     } else if (document.activeElement.isEqualNode(wrapper.value) && !isOpen.value) {
-      activate()    
+      activate()
     }
 
     setTimeout(() => {
