@@ -177,7 +177,7 @@ function useSearch (props, context, dep)
   }
 }
 
-function usePointer$1 (props, context, dep)
+function usePointer$1 (props)
 {
   const { groupSelect, mode, groups, disabledProp } = toRefs(props);
 
@@ -1452,7 +1452,6 @@ function useMultiselect (props, context, dep)
   };
 
   const deactivate = () => {
-    console.log('deactivate');
     isActive.value = false;
 
     setTimeout(() => {
@@ -1475,7 +1474,6 @@ function useMultiselect (props, context, dep)
   };
 
   const handleFocusOut = () => {
-    console.log(hideOnBlur.value);
     if (hideOnBlur.value)
       deactivate();
   };
