@@ -99,7 +99,7 @@ function useValue (props, context)
 
 function useSearch (props, context, dep)
 {
-  const { regex } = toRefs(props);
+  const { regex, clearOnSelect, clearOnBlur, mode, label } = toRefs(props);
 
   const $this = getCurrentInstance().proxy;
 
@@ -107,6 +107,7 @@ function useSearch (props, context, dep)
 
   const isOpen = dep.isOpen;
   const open = dep.open;
+  const iv = dep.iv;
 
   // ================ DATA ================
 
@@ -122,6 +123,11 @@ function useSearch (props, context, dep)
 
   const handleSearchInput = (e) => {
     search.value = e.target.value;
+  };
+
+  const setSearchValue = () => {
+    if (mode.value === 'single' && !clearOnSelect.value && !clearOnBlur.value)
+      search.value = iv.value[label.value];
   };
 
   const handleKeypress = (e) => {
@@ -148,7 +154,7 @@ function useSearch (props, context, dep)
       if (typeof regexp === 'string') {
         regexp = new RegExp(regexp);
       }
-      
+
       if (!pastedData.split('').every(c => !!c.match(regexp))) {
         e.preventDefault();
       }
@@ -167,10 +173,13 @@ function useSearch (props, context, dep)
     context.emit('search-change', val, $this);
   });
 
+  watch(iv, setSearchValue);
+
   return {
     search,
     input,
     clearSearch,
+    setSearchValue,
     handleSearchInput,
     handleKeypress,
     handlePaste,
@@ -236,7 +245,7 @@ function arraysEqual (array1, array2) {
 
 function useOptions (props, context, dep)
 {
-  const { 
+  const {
     options, mode, trackBy: trackBy_, limit, hideSelected, createTag, createOption: createOption_, label,
     appendNewTag, appendNewOption: appendNewOption_, multipleLabel, object, loading, delay, resolveOnLoad,
     minChars, filterResults, clearOnSearch, clearOnSelect, valueProp, allowAbsent, groupLabel,
@@ -476,7 +485,7 @@ function useOptions (props, context, dep)
   // =============== METHODS ==============
 
   /**
-   * @param {array|object|string|number} option 
+   * @param {array|object|string|number} option
    */
   const select = (option) => {
     if (typeof option !== 'object') {
@@ -564,7 +573,7 @@ function useOptions (props, context, dep)
     if (max === undefined || max.value === -1 || (!hasSelected.value && max.value > 0)) {
       return false
     }
-    
+
     return iv.value.length >= max.value
   };
 
@@ -578,7 +587,7 @@ function useOptions (props, context, dep)
       delete option.__CREATE__;
 
       option = onCreate.value(option, $this);
-      
+
       if (option instanceof Promise) {
         resolving.value = true;
         option.then((result) => {
@@ -587,7 +596,7 @@ function useOptions (props, context, dep)
         });
 
         return
-      } 
+      }
     }
 
     handleOptionSelect(option);
@@ -598,7 +607,7 @@ function useOptions (props, context, dep)
       option = { ...option };
       delete option.__CREATE__;
     }
-    
+
     switch (mode.value) {
       case 'single':
         if (option && isSelected(option)) {
@@ -789,7 +798,7 @@ function useOptions (props, context, dep)
 
   // no export
   const filterGroups = (groups) => {
-    // If the search has value we need to filter among 
+    // If the search has value we need to filter among
     // the ones that are visible to the user to avoid
     // displaying groups which technically have options
     // based on search but that option is already selected.
@@ -804,7 +813,7 @@ function useOptions (props, context, dep)
   // no export
   const filterOptions = (options, excludeHideSelected = true) => {
     let fo = options;
-    
+
     if (search.value && filterResults.value) {
       let filter = searchFilter.value;
 
@@ -831,7 +840,7 @@ function useOptions (props, context, dep)
   // no export
   const optionsToArray = (options) => {
     let uo = options;
-    
+
     // Transforming an object to an array of objects
     if (isObject(uo)) {
       uo = Object.keys(uo).map((key) => {
@@ -992,7 +1001,7 @@ function useOptions (props, context, dep)
 
     initInternalValue();
   }
-  
+
   // ============== WATCHERS ==============
 
   if (delay.value > -1) {

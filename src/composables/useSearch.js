@@ -2,7 +2,7 @@ import { ref, getCurrentInstance, watch, toRefs } from 'vue'
 
 export default function useSearch (props, context, dep)
 {
-  const { regex } = toRefs(props)
+  const { regex, clearOnSelect, clearOnBlur, mode, label } = toRefs(props)
 
   const $this = getCurrentInstance().proxy
 
@@ -10,6 +10,7 @@ export default function useSearch (props, context, dep)
 
   const isOpen = dep.isOpen
   const open = dep.open
+  const iv = dep.iv
 
   // ================ DATA ================
 
@@ -25,6 +26,11 @@ export default function useSearch (props, context, dep)
 
   const handleSearchInput = (e) => {
     search.value = e.target.value
+  }
+
+  const setSearchValue = () => {
+    if (mode.value === 'single' && !clearOnSelect.value && !clearOnBlur.value)
+      search.value = iv.value[label.value]
   }
 
   const handleKeypress = (e) => {
@@ -51,7 +57,7 @@ export default function useSearch (props, context, dep)
       if (typeof regexp === 'string') {
         regexp = new RegExp(regexp)
       }
-      
+
       if (!pastedData.split('').every(c => !!c.match(regexp))) {
         e.preventDefault()
       }
@@ -70,10 +76,13 @@ export default function useSearch (props, context, dep)
     context.emit('search-change', val, $this)
   })
 
+  watch(iv, setSearchValue)
+
   return {
     search,
     input,
     clearSearch,
+    setSearchValue,
     handleSearchInput,
     handleKeypress,
     handlePaste,
