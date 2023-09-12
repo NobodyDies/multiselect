@@ -20,7 +20,7 @@ function useData (props, context, dep)
     // Setting object(s) as internal value
     iv.value = makeInternal(val);
 
-    // Setting object(s) or plain value as external 
+    // Setting object(s) or plain value as external
     // value based on `option` setting
     const externalVal = makeExternal(val);
 
@@ -30,7 +30,7 @@ function useData (props, context, dep)
       context.emit('input', externalVal);
       context.emit('update:modelValue', externalVal);
     }
-  }; 
+  };
 
   // no export
   const makeExternal = (val) => {
@@ -99,7 +99,7 @@ function useValue (props, context)
 
 function useSearch (props, context, dep)
 {
-  const { regex, clearOnSelect, clearOnBlur, mode, label } = toRefs(props);
+  const { regex, useInputForValue, mode, label } = toRefs(props);
 
   const $this = getCurrentInstance().proxy;
 
@@ -118,7 +118,10 @@ function useSearch (props, context, dep)
   // =============== METHODS ==============
 
   const clearSearch = () => {
-    search.value = '';
+    if (!useInputForValue.value)
+      search.value = '';
+    else
+      setSearchValue();
   };
 
   const handleSearchInput = (e) => {
@@ -126,8 +129,8 @@ function useSearch (props, context, dep)
   };
 
   const setSearchValue = () => {
-    if (mode.value === 'single' && !clearOnSelect.value && !clearOnBlur.value)
-      search.value = iv.value[label.value];
+    if (mode.value === 'single' && useInputForValue.value)
+      search.value = iv.value[label.value] || '';
   };
 
   const handleKeypress = (e) => {
@@ -2602,6 +2605,11 @@ var script = {
         type: Boolean,
         default: true,
       },
+      useInputForValue: {
+        required: false,
+        type: Boolean,
+        default: false,
+      },
     },
     setup(props, context)
     {
@@ -2771,7 +2779,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
           ], 2 /* CLASS */))
         : createCommentVNode("v-if", true),
       createCommentVNode(" Single label "),
-      ($props.mode == 'single' && _ctx.hasSelected && !_ctx.search && _ctx.iv)
+      ($props.mode == 'single' && _ctx.hasSelected && !_ctx.search && _ctx.iv && !$props.useInputForValue)
         ? renderSlot(_ctx.$slots, "singlelabel", {
             key: 2,
             value: _ctx.iv

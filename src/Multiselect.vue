@@ -118,7 +118,7 @@
       </template>
 
       <!-- Single label -->
-      <template v-if="mode == 'single' && hasSelected && !search && iv">
+      <template v-if="mode == 'single' && hasSelected && !search && iv && !useInputForValue">
         <slot name="singlelabel" :value="iv">
           <div :class="classList.singleLabel">
             <span :class="classList.singleLabelText">{{ localize(iv[label]) }}</span>
@@ -644,6 +644,11 @@
         required: false,
         type: Boolean,
         default: true,
+      },
+      useInputForValue: {
+        required: false,
+        type: Boolean,
+        default: false,
       },
     },
     setup(props, context)

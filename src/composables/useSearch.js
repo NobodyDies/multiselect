@@ -2,7 +2,7 @@ import { ref, getCurrentInstance, watch, toRefs } from 'vue'
 
 export default function useSearch (props, context, dep)
 {
-  const { regex, clearOnSelect, clearOnBlur, mode, label } = toRefs(props)
+  const { regex, useInputForValue, mode, label } = toRefs(props)
 
   const $this = getCurrentInstance().proxy
 
@@ -21,7 +21,10 @@ export default function useSearch (props, context, dep)
   // =============== METHODS ==============
 
   const clearSearch = () => {
-    search.value = ''
+    if (!useInputForValue.value)
+      search.value = ''
+    else
+      setSearchValue()
   }
 
   const handleSearchInput = (e) => {
@@ -29,8 +32,8 @@ export default function useSearch (props, context, dep)
   }
 
   const setSearchValue = () => {
-    if (mode.value === 'single' && !clearOnSelect.value && !clearOnBlur.value)
-      search.value = iv.value[label.value]
+    if (mode.value === 'single' && useInputForValue.value)
+      search.value = iv.value[label.value] || ''
   }
 
   const handleKeypress = (e) => {
