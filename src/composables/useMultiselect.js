@@ -62,7 +62,7 @@ export default function useMultiselect (props, context, dep)
     isActive.value = false
 
     setTimeout(() => {
-      if (!isActive.value) {
+      if (!isActive.value && hideOnBlur.value) {
         close()
 
         if (clearOnBlur.value) {
@@ -81,8 +81,7 @@ export default function useMultiselect (props, context, dep)
   }
 
   const handleFocusOut = () => {
-    if (hideOnBlur.value)
-      deactivate()
+    deactivate()
   }
 
   const handleCaretClick = () => {
