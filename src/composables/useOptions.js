@@ -11,7 +11,7 @@ export default function useOptions (props, context, dep)
     appendNewTag, appendNewOption: appendNewOption_, multipleLabel, object, loading, delay, resolveOnLoad,
     minChars, filterResults, clearOnSearch, clearOnSelect, valueProp, allowAbsent, groupLabel,
     canDeselect, max, strict, closeOnSelect, closeOnDeselect, groups: groupped, reverse, infinite,
-    groupOptions, groupHideEmpty, groupSelect, onCreate, disabledProp, searchStart, searchFilter,
+    groupOptions, groupHideEmpty, groupSelect, onCreate, disabledProp, searchStart, searchFilter, sort
   } = toRefs(props)
 
   const $this = getCurrentInstance().proxy
@@ -260,7 +260,10 @@ export default function useOptions (props, context, dep)
 
       case 'multiple':
       case 'tags':
-        update((iv.value).concat(option))
+        const val = (iv.value).concat(option)
+        if (sort.value)
+          val.sort(sort.value)
+        update(val)
         break
     }
 

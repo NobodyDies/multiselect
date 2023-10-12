@@ -253,7 +253,7 @@ function useOptions (props, context, dep)
     appendNewTag, appendNewOption: appendNewOption_, multipleLabel, object, loading, delay, resolveOnLoad,
     minChars, filterResults, clearOnSearch, clearOnSelect, valueProp, allowAbsent, groupLabel,
     canDeselect, max, strict, closeOnSelect, closeOnDeselect, groups: groupped, reverse, infinite,
-    groupOptions, groupHideEmpty, groupSelect, onCreate, disabledProp, searchStart, searchFilter,
+    groupOptions, groupHideEmpty, groupSelect, onCreate, disabledProp, searchStart, searchFilter, sort
   } = toRefs(props);
 
   const $this = getCurrentInstance().proxy;
@@ -502,7 +502,10 @@ function useOptions (props, context, dep)
 
       case 'multiple':
       case 'tags':
-        update((iv.value).concat(option));
+        const val = (iv.value).concat(option);
+        if (sort.value)
+          val.sort(sort.value);
+        update(val);
         break
     }
 
@@ -2609,6 +2612,11 @@ var script = {
         type: Boolean,
         default: false,
       },
+      sort: {
+        required: false,
+        type: Function,
+        default: null,
+      }
     },
     setup(props, context)
     {
@@ -2713,6 +2721,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
             (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.iv, (option, i, key) => {
               return renderSlot(_ctx.$slots, "tag", {
                 option: option,
+                key: i,
                 handleTagRemove: _ctx.handleTagRemove,
                 disabled: $props.disabled
               }, () => [
@@ -2740,7 +2749,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
                     : createCommentVNode("v-if", true)
                 ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_4))
               ])
-            }), 256 /* UNKEYED_FRAGMENT */)),
+            }), 128 /* KEYED_FRAGMENT */)),
             createElementVNode("div", {
               class: normalizeClass(_ctx.classList.tagsSearchWrapper),
               ref: "tags"

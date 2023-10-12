@@ -50,7 +50,6 @@
           }"
         />
       </template>
-
       <!-- Tags (with search) -->
       <template v-if="mode == 'tags'">
         <div :class="classList.tags" data-tags>
@@ -58,6 +57,7 @@
             v-for="(option, i, key) in iv"
             name="tag"
             :option="option"
+            :key="i"
             :handleTagRemove="handleTagRemove"
             :disabled="disabled"
           >
@@ -650,6 +650,11 @@
         type: Boolean,
         default: false,
       },
+      sort: {
+        required: false,
+        type: Function,
+        default: null,
+      }
     },
     setup(props, context)
     {
