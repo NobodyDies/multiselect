@@ -53,7 +53,7 @@ export default function useKeyboard (props, context, dep)
   const preparePointer = () => {
     // When options are hidden and creating tags is allowed
     // no pointer will be set (because options are hidden).
-    // In such case we need to set the pointer manually to the 
+    // In such case we need to set the pointer manually to the
     // first option, which equals to the option created from
     // the search value.
     if (mode.value === 'tags' && !showOptions.value && createOption.value && searchable.value && !groupped.value) {
@@ -107,8 +107,6 @@ export default function useKeyboard (props, context, dep)
         break
 
       case 'Enter':
-        e.preventDefault()
-
         if (e.keyCode === 229) {
           // ignore IME confirmation
           return
@@ -126,13 +124,16 @@ export default function useKeyboard (props, context, dep)
               wrapper.value.focus()
             }
           }
+          e.preventDefault()
           return
         }
 
         if (addOptionOn.value.indexOf('enter') === -1 && createOption.value) {
           return
+        } else {
+          e.preventDefault()
         }
-        
+
         preparePointer()
         selectPointer()
         break
@@ -140,7 +141,7 @@ export default function useKeyboard (props, context, dep)
       case ' ':
         if (!createOption.value && !searchable.value) {
           e.preventDefault()
-          
+
           preparePointer()
           selectPointer()
           return
@@ -148,18 +149,18 @@ export default function useKeyboard (props, context, dep)
 
         if (!createOption.value) {
           return false
-        } 
+        }
 
         if (addOptionOn.value.indexOf('space') === -1 && createOption.value) {
           return
         }
 
         e.preventDefault()
-        
+
         preparePointer()
         selectPointer()
         break
-      
+
       case 'Tab':
       case ';':
       case ',':
@@ -187,7 +188,7 @@ export default function useKeyboard (props, context, dep)
         if (!isOpen.value) {
           open()
         }
-        
+
         backwardPointer()
         break
 
@@ -230,7 +231,7 @@ export default function useKeyboard (props, context, dep)
         }
 
         e.preventDefault()
-        
+
         /* istanbul ignore else */
         if (tagList.length > activeIndex + 1) {
           tagList[activeIndex+1].focus()
@@ -241,7 +242,7 @@ export default function useKeyboard (props, context, dep)
         else if (!searchable.value) {
           wrapper.value.focus()
         }
-        
+
         break
     }
   }

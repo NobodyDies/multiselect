@@ -25,7 +25,7 @@
     >
       <!-- Search -->
       <template v-if="mode !== 'tags' && searchable && !disabled">
-        <input
+        <textarea
           :type="inputType"
           :modelValue="search"
           :value="search"
@@ -34,7 +34,10 @@
           :id="searchable ? id : undefined"
           @input="handleSearchInput"
           @keypress="handleKeypress"
+          @keyup="adjustTextArea"
           @paste.stop="handlePaste"
+          @focusout="adjustTextArea"
+          @focusin="adjustTextArea"
           ref="input"
 
           :aria-controls="ariaControls"
@@ -88,7 +91,7 @@
             <span :class="classList.tagsSearchCopy">{{ search }}</span>
 
             <!-- Actual search input -->
-            <input
+            <textarea
               v-if="searchable && !disabled"
               :type="inputType"
               :modelValue="search"
@@ -98,7 +101,10 @@
               :autocomplete="autocomplete"
               @input="handleSearchInput"
               @keypress="handleKeypress"
+              @keyup="adjustTextArea"
               @paste.stop="handlePaste"
+              @focusout="adjustTextArea"
+              @focusin="adjustTextArea"
               ref="input"
 
               :aria-controls="ariaControls"
@@ -118,7 +124,7 @@
       </template>
 
       <!-- Single label -->
-      <template v-if="mode == 'single' && hasSelected && !search && iv && !useInputForValue">
+      <template v-if="mode == 'single' && hasSelected && !search && iv">
         <slot name="singlelabel" :value="iv">
           <div :class="classList.singleLabel">
             <span :class="classList.singleLabelText">{{ localize(iv[label]) }}</span>
@@ -654,6 +660,11 @@
         required: false,
         type: Function,
         default: null,
+      },
+      searchValue: {
+        required: false,
+        type: String,
+        default: '',
       }
     },
     setup(props, context)

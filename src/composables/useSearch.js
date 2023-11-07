@@ -1,8 +1,8 @@
-import { ref, getCurrentInstance, watch, toRefs } from 'vue'
+import { ref, getCurrentInstance, watch, toRefs, nextTick } from 'vue'
 
 export default function useSearch (props, context, dep)
 {
-  const { regex, useInputForValue, mode, label } = toRefs(props)
+  const { regex, useInputForValue, mode, label, searchValue } = toRefs(props)
 
   const $this = getCurrentInstance().proxy
 
@@ -50,6 +50,11 @@ export default function useSearch (props, context, dep)
     }
   }
 
+  const adjustTextArea = () => {
+    input.value.style.height = "1px";
+    input.value.style.height = (input.value.scrollHeight)+"px";
+  }
+
   const handlePaste = (e) => {
     if (regex && regex.value) {
       let clipboardData = e.clipboardData || /* istanbul ignore next */ window.clipboardData
@@ -71,15 +76,20 @@ export default function useSearch (props, context, dep)
 
   // ============== WATCHERS ==============
 
-  watch(search, (val) => {
-    if (!isOpen.value && val) {
+  watch(search, async (val) => {
+    if (!isOpen.value && val && !useInputForValue.value) {
       open()
     }
 
     context.emit('search-change', val, $this)
+
+    await nextTick();
+    adjustTextArea();
   })
 
-  watch(iv, setSearchValue)
+  watch(searchValue, (val) => {
+    search.value = val;
+  })
 
   return {
     search,
@@ -89,5 +99,6 @@ export default function useSearch (props, context, dep)
     handleSearchInput,
     handleKeypress,
     handlePaste,
+    adjustTextArea,
   }
 }

@@ -5,7 +5,7 @@ export default function usePointer (props, context, dep)
   const {
     valueProp, showOptions, searchable, groupLabel,
     groups: groupped, mode, groupSelect, disabledProp,
-    groupOptions,
+    groupOptions, useInputForValue
   } = toRefs(props)
 
   // ============ DEPENDENCIES ============
@@ -20,6 +20,7 @@ export default function usePointer (props, context, dep)
   const clearPointer = dep.clearPointer
   const multiselect = dep.multiselect
   const isOpen = dep.isOpen
+  const setSearchValue = dep.setSearchValue
 
   // ============== COMPUTED ==============
 
@@ -55,7 +56,7 @@ export default function usePointer (props, context, dep)
 
     return prevGroup
   })
-  
+
   const nextGroup = computed(() => {
     let nextIndex = groups.value.map(g => g.label).indexOf(isPointerGroup.value
       ? pointer.value[groupLabel.value]
@@ -71,7 +72,7 @@ export default function usePointer (props, context, dep)
   const lastGroup = computed(() => {
     return [...groups.value].slice(-1)[0]
   })
-  
+
   const currentGroupFirstEnabledOption = computed(() => {
     return pointer.value.__VISIBLE__.filter(o => !o[disabledProp.value])[0]
   })
@@ -80,7 +81,7 @@ export default function usePointer (props, context, dep)
     const options = currentGroup.value.__VISIBLE__.filter(o => !o[disabledProp.value])
     return options[options.map(o => o[valueProp.value]).indexOf(pointer.value[valueProp.value]) - 1]
   })
-  
+
   const currentGroupNextEnabledOption = computed(() => {
     const options = getParentGroup(pointer.value).__VISIBLE__.filter(o => !o[disabledProp.value])
     return options[options.map(o => o[valueProp.value]).indexOf(pointer.value[valueProp.value]) + 1]
@@ -221,7 +222,7 @@ export default function usePointer (props, context, dep)
     if (pointedOption.offsetTop + pointedOption.offsetHeight > wrapper.clientHeight + wrapper.scrollTop) {
       wrapper.scrollTop = pointedOption.offsetTop + pointedOption.offsetHeight - wrapper.clientHeight
     }
-    
+
     if (pointedOption.offsetTop < wrapper.scrollTop) {
       wrapper.scrollTop = pointedOption.offsetTop
     }
@@ -241,14 +242,16 @@ export default function usePointer (props, context, dep)
 
   watch(isOpen, (val) => {
     if (val) {
-      let firstSelected = multiselect.value.querySelectorAll(`[data-selected]`)[0]
+      if (useInputForValue.value)
+        setSearchValue()
+
+      let firstSelected = multiselect.value?.querySelectorAll(`[data-selected]`)[0]
 
       if (!firstSelected) {
         return
       }
 
       let wrapper = firstSelected.parentElement.parentElement
-      
       nextTick(() => {
         /* istanbul ignore next */
         if (wrapper.scrollTop > 0) {

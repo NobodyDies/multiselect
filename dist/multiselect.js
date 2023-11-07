@@ -99,7 +99,7 @@ function useValue (props, context)
 
 function useSearch (props, context, dep)
 {
-  const { regex, useInputForValue, mode, label } = toRefs(props);
+  const { regex, useInputForValue, mode, label, searchValue } = toRefs(props);
 
   const $this = getCurrentInstance().proxy;
 
@@ -147,6 +147,11 @@ function useSearch (props, context, dep)
     }
   };
 
+  const adjustTextArea = () => {
+    input.value.style.height = "1px";
+    input.value.style.height = (input.value.scrollHeight)+"px";
+  };
+
   const handlePaste = (e) => {
     if (regex && regex.value) {
       let clipboardData = e.clipboardData || /* istanbul ignore next */ window.clipboardData;
@@ -168,15 +173,20 @@ function useSearch (props, context, dep)
 
   // ============== WATCHERS ==============
 
-  watch(search, (val) => {
-    if (!isOpen.value && val) {
+  watch(search, async (val) => {
+    if (!isOpen.value && val && !useInputForValue.value) {
       open();
     }
 
     context.emit('search-change', val, $this);
+
+    await nextTick();
+    adjustTextArea();
   });
 
-  watch(iv, setSearchValue);
+  watch(searchValue, (val) => {
+    search.value = val;
+  });
 
   return {
     search,
@@ -186,6 +196,7 @@ function useSearch (props, context, dep)
     handleSearchInput,
     handleKeypress,
     handlePaste,
+    adjustTextArea,
   }
 }
 
@@ -553,6 +564,7 @@ function useOptions (props, context, dep)
 
   const clear = () => {
     context.emit('clear', $this);
+    search.value='';
     update(nullValue.value);
   };
 
@@ -1105,7 +1117,7 @@ function usePointer (props, context, dep)
   const {
     valueProp, showOptions, searchable, groupLabel,
     groups: groupped, mode, groupSelect, disabledProp,
-    groupOptions,
+    groupOptions, useInputForValue
   } = toRefs(props);
 
   // ============ DEPENDENCIES ============
@@ -1120,6 +1132,7 @@ function usePointer (props, context, dep)
   const clearPointer = dep.clearPointer;
   const multiselect = dep.multiselect;
   const isOpen = dep.isOpen;
+  const setSearchValue = dep.setSearchValue;
 
   // ============== COMPUTED ==============
 
@@ -1155,7 +1168,7 @@ function usePointer (props, context, dep)
 
     return prevGroup
   });
-  
+
   const nextGroup = computed(() => {
     let nextIndex = groups.value.map(g => g.label).indexOf(isPointerGroup.value
       ? pointer.value[groupLabel.value]
@@ -1171,7 +1184,7 @@ function usePointer (props, context, dep)
   const lastGroup = computed(() => {
     return [...groups.value].slice(-1)[0]
   });
-  
+
   const currentGroupFirstEnabledOption = computed(() => {
     return pointer.value.__VISIBLE__.filter(o => !o[disabledProp.value])[0]
   });
@@ -1180,7 +1193,7 @@ function usePointer (props, context, dep)
     const options = currentGroup.value.__VISIBLE__.filter(o => !o[disabledProp.value]);
     return options[options.map(o => o[valueProp.value]).indexOf(pointer.value[valueProp.value]) - 1]
   });
-  
+
   const currentGroupNextEnabledOption = computed(() => {
     const options = getParentGroup(pointer.value).__VISIBLE__.filter(o => !o[disabledProp.value]);
     return options[options.map(o => o[valueProp.value]).indexOf(pointer.value[valueProp.value]) + 1]
@@ -1321,7 +1334,7 @@ function usePointer (props, context, dep)
     if (pointedOption.offsetTop + pointedOption.offsetHeight > wrapper.clientHeight + wrapper.scrollTop) {
       wrapper.scrollTop = pointedOption.offsetTop + pointedOption.offsetHeight - wrapper.clientHeight;
     }
-    
+
     if (pointedOption.offsetTop < wrapper.scrollTop) {
       wrapper.scrollTop = pointedOption.offsetTop;
     }
@@ -1341,14 +1354,16 @@ function usePointer (props, context, dep)
 
   watch(isOpen, (val) => {
     if (val) {
-      let firstSelected = multiselect.value.querySelectorAll(`[data-selected]`)[0];
+      if (useInputForValue.value)
+        setSearchValue();
+
+      let firstSelected = multiselect.value?.querySelectorAll(`[data-selected]`)[0];
 
       if (!firstSelected) {
         return
       }
 
       let wrapper = firstSelected.parentElement.parentElement;
-      
       nextTick(() => {
         /* istanbul ignore next */
         if (wrapper.scrollTop > 0) {
@@ -1585,7 +1600,7 @@ function useKeyboard (props, context, dep)
   const preparePointer = () => {
     // When options are hidden and creating tags is allowed
     // no pointer will be set (because options are hidden).
-    // In such case we need to set the pointer manually to the 
+    // In such case we need to set the pointer manually to the
     // first option, which equals to the option created from
     // the search value.
     if (mode.value === 'tags' && !showOptions.value && createOption.value && searchable.value && !groupped.value) {
@@ -1639,8 +1654,6 @@ function useKeyboard (props, context, dep)
         break
 
       case 'Enter':
-        e.preventDefault();
-
         if (e.keyCode === 229) {
           // ignore IME confirmation
           return
@@ -1658,13 +1671,16 @@ function useKeyboard (props, context, dep)
               wrapper.value.focus();
             }
           }
+          e.preventDefault();
           return
         }
 
         if (addOptionOn.value.indexOf('enter') === -1 && createOption.value) {
           return
+        } else {
+          e.preventDefault();
         }
-        
+
         preparePointer();
         selectPointer();
         break
@@ -1672,7 +1688,7 @@ function useKeyboard (props, context, dep)
       case ' ':
         if (!createOption.value && !searchable.value) {
           e.preventDefault();
-          
+
           preparePointer();
           selectPointer();
           return
@@ -1680,18 +1696,18 @@ function useKeyboard (props, context, dep)
 
         if (!createOption.value) {
           return false
-        } 
+        }
 
         if (addOptionOn.value.indexOf('space') === -1 && createOption.value) {
           return
         }
 
         e.preventDefault();
-        
+
         preparePointer();
         selectPointer();
         break
-      
+
       case 'Tab':
       case ';':
       case ',':
@@ -1719,7 +1735,7 @@ function useKeyboard (props, context, dep)
         if (!isOpen.value) {
           open();
         }
-        
+
         backwardPointer();
         break
 
@@ -1762,7 +1778,7 @@ function useKeyboard (props, context, dep)
         }
 
         e.preventDefault();
-        
+
         /* istanbul ignore else */
         if (tagList.length > activeIndex + 1) {
           tagList[activeIndex+1].focus();
@@ -1773,7 +1789,7 @@ function useKeyboard (props, context, dep)
         else if (!searchable.value) {
           wrapper.value.focus();
         }
-        
+
         break
     }
   };
@@ -2616,6 +2632,11 @@ var script = {
         required: false,
         type: Function,
         default: null,
+      },
+      searchValue: {
+        required: false,
+        type: String,
+        default: '',
       }
     },
     setup(props, context)
@@ -2669,14 +2690,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     class: normalizeClass(_ctx.classList.container),
     id: $props.searchable ? undefined : $props.id,
     dir: $props.rtl ? 'rtl' : undefined,
-    onFocusin: _cache[10] || (_cache[10] = (...args) => (_ctx.handleFocusIn && _ctx.handleFocusIn(...args))),
-    onFocusout: _cache[11] || (_cache[11] = (...args) => (_ctx.handleFocusOut && _ctx.handleFocusOut(...args))),
-    onKeyup: _cache[12] || (_cache[12] = (...args) => (_ctx.handleKeyup && _ctx.handleKeyup(...args))),
-    onKeydown: _cache[13] || (_cache[13] = (...args) => (_ctx.handleKeydown && _ctx.handleKeydown(...args)))
+    onFocusin: _cache[16] || (_cache[16] = (...args) => (_ctx.handleFocusIn && _ctx.handleFocusIn(...args))),
+    onFocusout: _cache[17] || (_cache[17] = (...args) => (_ctx.handleFocusOut && _ctx.handleFocusOut(...args))),
+    onKeyup: _cache[18] || (_cache[18] = (...args) => (_ctx.handleKeyup && _ctx.handleKeyup(...args))),
+    onKeydown: _cache[19] || (_cache[19] = (...args) => (_ctx.handleKeydown && _ctx.handleKeydown(...args)))
   }, [
     createElementVNode("div", mergeProps({
       class: _ctx.classList.wrapper,
-      onMousedown: _cache[9] || (_cache[9] = (...args) => (_ctx.handleMousedown && _ctx.handleMousedown(...args))),
+      onMousedown: _cache[15] || (_cache[15] = (...args) => (_ctx.handleMousedown && _ctx.handleMousedown(...args))),
       ref: "wrapper",
       tabindex: _ctx.tabindex,
       "aria-controls": !$props.searchable ? _ctx.ariaControls : undefined,
@@ -2688,7 +2709,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }, !$props.searchable ? _ctx.arias : {}), [
       createCommentVNode(" Search "),
       ($props.mode !== 'tags' && $props.searchable && !$props.disabled)
-        ? (openBlock(), createElementBlock("input", mergeProps({
+        ? (openBlock(), createElementBlock("textarea", mergeProps({
             key: 0,
             type: $props.inputType,
             modelValue: _ctx.search,
@@ -2698,7 +2719,10 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
             id: $props.searchable ? $props.id : undefined,
             onInput: _cache[0] || (_cache[0] = (...args) => (_ctx.handleSearchInput && _ctx.handleSearchInput(...args))),
             onKeypress: _cache[1] || (_cache[1] = (...args) => (_ctx.handleKeypress && _ctx.handleKeypress(...args))),
-            onPaste: _cache[2] || (_cache[2] = withModifiers((...args) => (_ctx.handlePaste && _ctx.handlePaste(...args)), ["stop"])),
+            onKeyup: _cache[2] || (_cache[2] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+            onPaste: _cache[3] || (_cache[3] = withModifiers((...args) => (_ctx.handlePaste && _ctx.handlePaste(...args)), ["stop"])),
+            onFocusout: _cache[4] || (_cache[4] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+            onFocusin: _cache[5] || (_cache[5] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
             ref: "input",
             "aria-controls": _ctx.ariaControls,
             "aria-placeholder": _ctx.ariaPlaceholder,
@@ -2760,7 +2784,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
               }, toDisplayString(_ctx.search), 3 /* TEXT, CLASS */),
               createCommentVNode(" Actual search input "),
               ($props.searchable && !$props.disabled)
-                ? (openBlock(), createElementBlock("input", mergeProps({
+                ? (openBlock(), createElementBlock("textarea", mergeProps({
                     key: 0,
                     type: $props.inputType,
                     modelValue: _ctx.search,
@@ -2768,9 +2792,12 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
                     class: _ctx.classList.tagsSearch,
                     id: $props.searchable ? $props.id : undefined,
                     autocomplete: $props.autocomplete,
-                    onInput: _cache[3] || (_cache[3] = (...args) => (_ctx.handleSearchInput && _ctx.handleSearchInput(...args))),
-                    onKeypress: _cache[4] || (_cache[4] = (...args) => (_ctx.handleKeypress && _ctx.handleKeypress(...args))),
-                    onPaste: _cache[5] || (_cache[5] = withModifiers((...args) => (_ctx.handlePaste && _ctx.handlePaste(...args)), ["stop"])),
+                    onInput: _cache[6] || (_cache[6] = (...args) => (_ctx.handleSearchInput && _ctx.handleSearchInput(...args))),
+                    onKeypress: _cache[7] || (_cache[7] = (...args) => (_ctx.handleKeypress && _ctx.handleKeypress(...args))),
+                    onKeyup: _cache[8] || (_cache[8] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+                    onPaste: _cache[9] || (_cache[9] = withModifiers((...args) => (_ctx.handlePaste && _ctx.handlePaste(...args)), ["stop"])),
+                    onFocusout: _cache[10] || (_cache[10] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+                    onFocusin: _cache[11] || (_cache[11] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
                     ref: "input",
                     "aria-controls": _ctx.ariaControls,
                     "aria-placeholder": _ctx.ariaPlaceholder,
@@ -2787,7 +2814,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
           ], 2 /* CLASS */))
         : createCommentVNode("v-if", true),
       createCommentVNode(" Single label "),
-      ($props.mode == 'single' && _ctx.hasSelected && !_ctx.search && _ctx.iv && !$props.useInputForValue)
+      ($props.mode == 'single' && _ctx.hasSelected && !_ctx.search && _ctx.iv)
         ? renderSlot(_ctx.$slots, "singlelabel", {
             key: 2,
             value: _ctx.iv
@@ -2844,8 +2871,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
               "data-clear": "",
               "aria-roledescription": "❎",
               class: normalizeClass(_ctx.classList.clear),
-              onClick: _cache[6] || (_cache[6] = (...args) => (_ctx.clear && _ctx.clear(...args))),
-              onKeyup: _cache[7] || (_cache[7] = withKeys((...args) => (_ctx.clear && _ctx.clear(...args)), ["enter"]))
+              onClick: _cache[12] || (_cache[12] = (...args) => (_ctx.clear && _ctx.clear(...args))),
+              onKeyup: _cache[13] || (_cache[13] = withKeys((...args) => (_ctx.clear && _ctx.clear(...args)), ["enter"]))
             }, [
               createElementVNode("span", {
                 class: normalizeClass(_ctx.classList.clearIcon)
@@ -2858,7 +2885,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         ? renderSlot(_ctx.$slots, "caret", { key: 7 }, () => [
             createElementVNode("span", {
               class: normalizeClass(_ctx.classList.caret),
-              onClick: _cache[8] || (_cache[8] = (...args) => (_ctx.handleCaretClick && _ctx.handleCaretClick(...args))),
+              onClick: _cache[14] || (_cache[14] = (...args) => (_ctx.handleCaretClick && _ctx.handleCaretClick(...args))),
               "aria-hidden": "true"
             }, null, 2 /* CLASS */)
           ])
