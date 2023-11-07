@@ -51,6 +51,7 @@ export default function useSearch (props, context, dep)
   }
 
   const adjustTextArea = () => {
+    if (!input.value) return;
     input.value.style.height = "1px";
     input.value.style.height = (input.value.scrollHeight)+"px";
   }
