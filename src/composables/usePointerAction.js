@@ -232,7 +232,7 @@ export default function usePointer (props, context, dep)
 
   watch(search, (val) => {
     if (searchable.value) {
-      if (val.length && showOptions.value) {
+      if (val && val.length && showOptions.value) {
         setPointerFirst()
       } else {
         clearPointer()
