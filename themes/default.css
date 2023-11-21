@@ -84,6 +84,7 @@
   background: var(--ms-bg, #FFFFFF);
   border-radius: var(--ms-radius, 4px);
   overflow: hidden;
+  resize: none;
 }
 .multiselect-search::-webkit-search-decoration, .multiselect-search::-webkit-search-cancel-button, .multiselect-search::-webkit-search-results-button, .multiselect-search::-webkit-search-results-decoration {
   -webkit-appearance: none;

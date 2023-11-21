@@ -88,6 +88,7 @@
   background: var(--ms-bg, #FFFFFF);
   border-radius: var(--ms-radius, 4px);
   overflow: hidden;
+  resize: none;
 
   &::-webkit-search-decoration,
   &::-webkit-search-cancel-button,

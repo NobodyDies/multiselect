@@ -1,8 +1,8 @@
-import { ref, getCurrentInstance, watch, toRefs, nextTick } from 'vue'
+import { ref, getCurrentInstance, watch, toRefs, nextTick, computed } from 'vue'
 
 export default function useSearch (props, context, dep)
 {
-  const { regex, useInputForValue, mode, label, searchValue } = toRefs(props)
+  const { regex, useInputForValue, mode, label, searchValue, maxLength } = toRefs(props)
 
   const $this = getCurrentInstance().proxy
 
@@ -75,6 +75,10 @@ export default function useSearch (props, context, dep)
     context.emit('paste', e, $this)
   }
 
+  const maxSearchLength = computed(() => {
+    return maxLength.value || Infinity;
+  })
+
   // ============== WATCHERS ==============
 
   watch(search, async (val) => {
@@ -101,5 +105,6 @@ export default function useSearch (props, context, dep)
     handleKeypress,
     handlePaste,
     adjustTextArea,
+    maxSearchLength,
   }
 }

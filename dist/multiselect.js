@@ -99,7 +99,7 @@ function useValue (props, context)
 
 function useSearch (props, context, dep)
 {
-  const { regex, useInputForValue, mode, label, searchValue } = toRefs(props);
+  const { regex, useInputForValue, mode, label, searchValue, maxLength } = toRefs(props);
 
   const $this = getCurrentInstance().proxy;
 
@@ -172,6 +172,10 @@ function useSearch (props, context, dep)
     context.emit('paste', e, $this);
   };
 
+  const maxSearchLength = computed(() => {
+    return maxLength.value || Infinity;
+  });
+
   // ============== WATCHERS ==============
 
   watch(search, async (val) => {
@@ -198,6 +202,7 @@ function useSearch (props, context, dep)
     handleKeypress,
     handlePaste,
     adjustTextArea,
+    maxSearchLength,
   }
 }
 
@@ -2638,6 +2643,11 @@ var script = {
         required: false,
         type: String,
         default: '',
+      },
+      maxLength: {
+        required: false,
+        type: Number,
+        default: false,
       }
     },
     setup(props, context)
@@ -2666,10 +2676,10 @@ var script = {
 
 const _hoisted_1 = ["id", "dir"];
 const _hoisted_2 = ["tabindex", "aria-controls", "aria-placeholder", "aria-expanded", "aria-activedescendant", "aria-multiselectable", "role"];
-const _hoisted_3 = ["type", "modelValue", "value", "autocomplete", "id", "aria-controls", "aria-placeholder", "aria-expanded", "aria-activedescendant", "aria-multiselectable"];
+const _hoisted_3 = ["type", "modelValue", "value", "autocomplete", "id", "maxlength", "aria-controls", "aria-placeholder", "aria-expanded", "aria-activedescendant", "aria-multiselectable"];
 const _hoisted_4 = ["onKeyup", "aria-label"];
 const _hoisted_5 = ["onClick"];
-const _hoisted_6 = ["type", "modelValue", "value", "id", "autocomplete", "aria-controls", "aria-placeholder", "aria-expanded", "aria-activedescendant", "aria-multiselectable"];
+const _hoisted_6 = ["type", "modelValue", "value", "id", "autocomplete", "maxlength", "aria-controls", "aria-placeholder", "aria-expanded", "aria-activedescendant", "aria-multiselectable"];
 const _hoisted_7 = ["innerHTML"];
 const _hoisted_8 = ["id"];
 const _hoisted_9 = ["id", "aria-label", "aria-selected"];
@@ -2718,6 +2728,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
             class: _ctx.classList.search,
             autocomplete: $props.autocomplete,
             id: $props.searchable ? $props.id : undefined,
+            maxlength: _ctx.maxSearchLength,
             onInput: _cache[0] || (_cache[0] = (...args) => (_ctx.handleSearchInput && _ctx.handleSearchInput(...args))),
             onKeypress: _cache[1] || (_cache[1] = (...args) => (_ctx.handleKeypress && _ctx.handleKeypress(...args))),
             onKeyup: _cache[2] || (_cache[2] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
@@ -2793,6 +2804,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
                     class: _ctx.classList.tagsSearch,
                     id: $props.searchable ? $props.id : undefined,
                     autocomplete: $props.autocomplete,
+                    maxlength: _ctx.maxSearchLength,
                     onInput: _cache[6] || (_cache[6] = (...args) => (_ctx.handleSearchInput && _ctx.handleSearchInput(...args))),
                     onKeypress: _cache[7] || (_cache[7] = (...args) => (_ctx.handleKeypress && _ctx.handleKeypress(...args))),
                     onKeyup: _cache[8] || (_cache[8] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),

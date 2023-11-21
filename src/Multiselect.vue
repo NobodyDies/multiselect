@@ -32,6 +32,7 @@
           :class="classList.search"
           :autocomplete="autocomplete"
           :id="searchable ? id : undefined"
+          :maxlength="maxSearchLength"
           @input="handleSearchInput"
           @keypress="handleKeypress"
           @keyup="adjustTextArea"
@@ -99,6 +100,8 @@
               :class="classList.tagsSearch"
               :id="searchable ? id : undefined"
               :autocomplete="autocomplete"
+              :maxlength="maxSearchLength"
+
               @input="handleSearchInput"
               @keypress="handleKeypress"
               @keyup="adjustTextArea"
@@ -665,6 +668,11 @@
         required: false,
         type: String,
         default: '',
+      },
+      maxLength: {
+        required: false,
+        type: Number,
+        default: false,
       }
     },
     setup(props, context)
