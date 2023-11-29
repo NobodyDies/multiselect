@@ -99,7 +99,7 @@ function useValue (props, context)
 
 function useSearch (props, context, dep)
 {
-  const { regex, useInputForValue, mode, label, searchValue, maxLength } = toRefs(props);
+  const { regex, useInputForValue, mode, label, searchValue, maxLength, modelValue } = toRefs(props);
 
   const $this = getCurrentInstance().proxy;
 
@@ -114,6 +114,9 @@ function useSearch (props, context, dep)
   const search = ref(null);
 
   const input = ref(null);
+
+  if (useInputForValue.value)
+    search.value = modelValue.value;
 
   // =============== METHODS ==============
 
@@ -2647,7 +2650,7 @@ var script = {
       maxLength: {
         required: false,
         type: Number,
-        default: false,
+        default: NaN,
       }
     },
     setup(props, context)
@@ -2827,7 +2830,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
           ], 2 /* CLASS */))
         : createCommentVNode("v-if", true),
       createCommentVNode(" Single label "),
-      ($props.mode == 'single' && _ctx.hasSelected && !_ctx.search && _ctx.iv)
+      ($props.mode == 'single' && _ctx.hasSelected && !_ctx.search && _ctx.iv && !$props.useInputForValue)
         ? renderSlot(_ctx.$slots, "singlelabel", {
             key: 2,
             value: _ctx.iv

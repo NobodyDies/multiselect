@@ -2,7 +2,7 @@ import { ref, getCurrentInstance, watch, toRefs, nextTick, computed } from 'vue'
 
 export default function useSearch (props, context, dep)
 {
-  const { regex, useInputForValue, mode, label, searchValue, maxLength } = toRefs(props)
+  const { regex, useInputForValue, mode, label, searchValue, maxLength, modelValue } = toRefs(props)
 
   const $this = getCurrentInstance().proxy
 
@@ -17,6 +17,9 @@ export default function useSearch (props, context, dep)
   const search = ref(null)
 
   const input = ref(null)
+
+  if (useInputForValue.value)
+    search.value = modelValue.value
 
   // =============== METHODS ==============
 
