@@ -2704,14 +2704,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     class: normalizeClass(_ctx.classList.container),
     id: $props.searchable ? undefined : $props.id,
     dir: $props.rtl ? 'rtl' : undefined,
-    onFocusin: _cache[16] || (_cache[16] = (...args) => (_ctx.handleFocusIn && _ctx.handleFocusIn(...args))),
-    onFocusout: _cache[17] || (_cache[17] = (...args) => (_ctx.handleFocusOut && _ctx.handleFocusOut(...args))),
-    onKeyup: _cache[18] || (_cache[18] = (...args) => (_ctx.handleKeyup && _ctx.handleKeyup(...args))),
-    onKeydown: _cache[19] || (_cache[19] = (...args) => (_ctx.handleKeydown && _ctx.handleKeydown(...args)))
+    onFocusin: _cache[18] || (_cache[18] = (...args) => (_ctx.handleFocusIn && _ctx.handleFocusIn(...args))),
+    onFocusout: _cache[19] || (_cache[19] = (...args) => (_ctx.handleFocusOut && _ctx.handleFocusOut(...args))),
+    onKeyup: _cache[20] || (_cache[20] = (...args) => (_ctx.handleKeyup && _ctx.handleKeyup(...args))),
+    onKeydown: _cache[21] || (_cache[21] = (...args) => (_ctx.handleKeydown && _ctx.handleKeydown(...args)))
   }, [
     createElementVNode("div", mergeProps({
       class: _ctx.classList.wrapper,
-      onMousedown: _cache[15] || (_cache[15] = (...args) => (_ctx.handleMousedown && _ctx.handleMousedown(...args))),
+      onMousedown: _cache[17] || (_cache[17] = (...args) => (_ctx.handleMousedown && _ctx.handleMousedown(...args))),
       ref: "wrapper",
       tabindex: _ctx.tabindex,
       "aria-controls": !$props.searchable ? _ctx.ariaControls : undefined,
@@ -2736,8 +2736,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
             onKeypress: _cache[1] || (_cache[1] = (...args) => (_ctx.handleKeypress && _ctx.handleKeypress(...args))),
             onKeyup: _cache[2] || (_cache[2] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
             onPaste: _cache[3] || (_cache[3] = withModifiers((...args) => (_ctx.handlePaste && _ctx.handlePaste(...args)), ["stop"])),
-            onFocusout: _cache[4] || (_cache[4] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
-            onFocusin: _cache[5] || (_cache[5] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+            onClick: _cache[4] || (_cache[4] = withModifiers(() => {}, ["stop"])),
+            onFocusout: _cache[5] || (_cache[5] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+            onFocusin: _cache[6] || (_cache[6] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
             ref: "input",
             "aria-controls": _ctx.ariaControls,
             "aria-placeholder": _ctx.ariaPlaceholder,
@@ -2808,12 +2809,13 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
                     id: $props.searchable ? $props.id : undefined,
                     autocomplete: $props.autocomplete,
                     maxlength: _ctx.maxSearchLength,
-                    onInput: _cache[6] || (_cache[6] = (...args) => (_ctx.handleSearchInput && _ctx.handleSearchInput(...args))),
-                    onKeypress: _cache[7] || (_cache[7] = (...args) => (_ctx.handleKeypress && _ctx.handleKeypress(...args))),
-                    onKeyup: _cache[8] || (_cache[8] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
-                    onPaste: _cache[9] || (_cache[9] = withModifiers((...args) => (_ctx.handlePaste && _ctx.handlePaste(...args)), ["stop"])),
-                    onFocusout: _cache[10] || (_cache[10] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
-                    onFocusin: _cache[11] || (_cache[11] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+                    onInput: _cache[7] || (_cache[7] = (...args) => (_ctx.handleSearchInput && _ctx.handleSearchInput(...args))),
+                    onKeypress: _cache[8] || (_cache[8] = (...args) => (_ctx.handleKeypress && _ctx.handleKeypress(...args))),
+                    onKeyup: _cache[9] || (_cache[9] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+                    onPaste: _cache[10] || (_cache[10] = withModifiers((...args) => (_ctx.handlePaste && _ctx.handlePaste(...args)), ["stop"])),
+                    onClick: _cache[11] || (_cache[11] = withModifiers(() => {}, ["stop"])),
+                    onFocusout: _cache[12] || (_cache[12] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
+                    onFocusin: _cache[13] || (_cache[13] = (...args) => (_ctx.adjustTextArea && _ctx.adjustTextArea(...args))),
                     ref: "input",
                     "aria-controls": _ctx.ariaControls,
                     "aria-placeholder": _ctx.ariaPlaceholder,
@@ -2887,8 +2889,8 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
               "data-clear": "",
               "aria-roledescription": "❎",
               class: normalizeClass(_ctx.classList.clear),
-              onClick: _cache[12] || (_cache[12] = (...args) => (_ctx.clear && _ctx.clear(...args))),
-              onKeyup: _cache[13] || (_cache[13] = withKeys((...args) => (_ctx.clear && _ctx.clear(...args)), ["enter"]))
+              onClick: _cache[14] || (_cache[14] = (...args) => (_ctx.clear && _ctx.clear(...args))),
+              onKeyup: _cache[15] || (_cache[15] = withKeys((...args) => (_ctx.clear && _ctx.clear(...args)), ["enter"]))
             }, [
               createElementVNode("span", {
                 class: normalizeClass(_ctx.classList.clearIcon)
@@ -2901,7 +2903,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         ? renderSlot(_ctx.$slots, "caret", { key: 7 }, () => [
             createElementVNode("span", {
               class: normalizeClass(_ctx.classList.caret),
-              onClick: _cache[14] || (_cache[14] = (...args) => (_ctx.handleCaretClick && _ctx.handleCaretClick(...args))),
+              onClick: _cache[16] || (_cache[16] = (...args) => (_ctx.handleCaretClick && _ctx.handleCaretClick(...args))),
               "aria-hidden": "true"
             }, null, 2 /* CLASS */)
           ])
